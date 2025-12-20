@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: tax-calc-postgres
+    environment:
+      POSTGRES_DB: taxcalc
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taxcalc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tax-calc-network
+
+  # HashiCorp Vault (Dev Mode)
+  vault:
+    image: hashicorp/vault:latest
+    container_name: tax-calc-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tax-calc-network
+
+  # Vault Configuration (runs once to setup Vault)
+  vault-init:
+    image: hashicorp/vault:latest
+    container_name: tax-calc-vault-init
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root
+    depends_on:
+      vault:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "Waiting for Vault to be ready..."
+        sleep 5
+        
+        echo "Configuring Vault..."
+        
+        # Enable transit secrets engine
+        vault secrets enable -path=transit transit || true
+        vault write -f transit/keys/tax-calculator || true
+        
+        # Enable database secrets engine
+        vault secrets enable database || true
+        
+        # Configure PostgreSQL connection
+        vault write database/config/postgres \
+          plugin_name=postgresql-database-plugin \
+          allowed_roles="tax-calculator-role" \
+          connection_url="postgresql://{{username}}:{{password}}@postgres:5432/taxcalc?sslmode=disable" \
+          username="postgres" \
+          password="postgres123"
+        
+        # Create database role for dynamic credentials
+        vault write database/roles/tax-calculator-role \
+          db_name=postgres \
+          creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
+            GRANT CONNECT ON DATABASE taxcalc TO \"{{name}}\"; \
+            GRANT USAGE ON SCHEMA public TO \"{{name}}\"; \
+            GRANT CREATE ON SCHEMA public TO \"{{name}}\"; \
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"{{name}}\"; \
+            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO \"{{name}}\"; \
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \"{{name}}\"; \
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO \"{{name}}\";" \
+          default_ttl="1h" \
+          max_ttl="24h"
+        
+        # Enable KV secrets engine
+        vault secrets enable -path=secret kv-v2 || true
+        
+        # Store some sample configuration
+        vault kv put secret/config/tax-calculator \
+          app_name="Tax Calculator" \
+          version="1.0.0"
+        
+        echo "Vault configuration complete!"
+        
+        # Test dynamic credentials
+        echo "Testing dynamic credentials..."
+        vault read database/creds/tax-calculator-role
+        
+        echo "All done! Vault is ready."
+    networks:
+      - tax-calc-network
+
+  # Backend API (Go)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tax-calc-backend
+    environment:
+      PORT: 8080
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: taxcalc
+    ports:
+      - "8080:8080"
+    depends_on:
+      vault-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - tax-calc-network
+    restart: unless-stopped
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: tax-calc-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    networks:
+      - tax-calc-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  tax-calc-network:
+    driver: bridge

@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-policies
+  namespace: vault
+data:
+  admin-policy.hcl: |
+    # Admin policy - full access
+    path "*" {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+  
+  app-policy.hcl: |
+    # Application policy - read-only to secrets
+    path "secret/data/app/*" {
+      capabilities = ["read", "list"]
+    }
+    
+    path "secret/metadata/app/*" {
+      capabilities = ["read", "list"]
+    }
+    
+    path "transit/encrypt/app" {
+      capabilities = ["update"]
+    }
+    
+    path "transit/decrypt/app" {
+      capabilities = ["update"]
+    }
+  
+  database-policy.hcl: |
+    # Database credentials policy
+    path "database/creds/*" {
+      capabilities = ["read"]
+    }

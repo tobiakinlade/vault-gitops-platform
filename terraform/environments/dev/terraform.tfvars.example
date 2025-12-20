@@ -1,0 +1,25 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and update with your values
+
+aws_region   = "eu-west-2"
+environment  = "dev"
+project_name = "vault-demo"
+
+# VPC Configuration
+vpc_cidr             = "10.0.0.0/16"
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+single_nat_gateway   = true  # Set to false for HA in production
+
+# EKS Configuration
+eks_cluster_version = "1.28"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 3
+node_min_size       = 2
+node_max_size       = 5
+node_disk_size      = 20
+
+# Vault Configuration
+vault_namespace    = "vault"
+vault_replicas     = 3
+vault_storage_size = "10Gi"

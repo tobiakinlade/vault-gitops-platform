@@ -1,0 +1,57 @@
+# Backups and temporary files
+.cleanup-backup/
+.pre-cleanup-backup/
+*.backup
+*-backup/
+archive/
+*.tmp
+*.temp
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+!*.tfvars.example
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Go
+vendor/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Environment
+.env
+.env.local
+*.local
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Docker
+.dockerignore
