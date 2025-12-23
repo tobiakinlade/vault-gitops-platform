@@ -5,7 +5,7 @@
 
 [![Terraform](https://img.shields.io/badge/Terraform-1.0+-purple?logo=terraform)](https://www.terraform.io/)
 [![Vault](https://img.shields.io/badge/Vault-1.14+-black?logo=vault)](https://www.vaultproject.io/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.27+-blue?logo=kubernetes)](https://kubernetes.io/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-blue?logo=kubernetes)](https://kubernetes.io/)
 [![ArgoCD](https://img.shields.io/badge/ArgoCD-2.8+-orange?logo=argo)](https://argoproj.github.io/cd/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)](https://docs.docker.com/compose/)
 
@@ -293,9 +293,9 @@ This project is for demonstration of secure-by-design project purposes.
 Built by **Tobi Akinlade**  
 DevOps Engineer | Platform Engineer| UK STEM Ambassador
 
-- GitHub: [Your GitHub]
-- LinkedIn: [Your LinkedIn]
-- Email: [Your Email]
+- GitHub: https://github.com/tobiakinlade
+- LinkedIn: https://www.linkedin.com/in/tobi-akinlade-02b035150/
+- Email: tobi.akinlade.co@gmail.com
 
 ---
 
