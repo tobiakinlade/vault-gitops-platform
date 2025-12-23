@@ -13,7 +13,7 @@
 
 This project showcases **enterprise-grade secrets management** and **GitOps deployment patterns** through a real-world UK tax calculator application. It demonstrates the complete DevOps lifecycle from local development to production deployment.
 
-**Built for**: HMRC Senior DevOps Engineer Interview (January 2025)
+
 
 ### Key Features
 
@@ -35,7 +35,7 @@ docker-compose up --build
 open http://localhost:3000
 ```
 
-**Perfect for**: Demo, testing, interview presentation
+**Perfect for**: Demo, testing,  presentation
 
 ### Cloud Deployment (30 minutes)
 
@@ -54,7 +54,7 @@ terraform apply
 
 ### Application Stack
 - **Backend**: Go REST API with UK tax calculations (2024/2025 rates)
-- **Frontend**: React UI with government-style design
+- **Frontend**: React UI
 - **Database**: PostgreSQL with Vault dynamic credentials
 - **Secrets**: HashiCorp Vault with comprehensive integration
 
@@ -119,8 +119,6 @@ terraform apply
 │
 └── docs/                          # Documentation
     ├── ARCHITECTURE.md           # System design
-    ├── INTERVIEW_PREP.md         # Interview guide
-    └── deployment-options.md     # Deployment strategies
 ```
 
 ---
@@ -184,7 +182,7 @@ KV Secrets Engine v2
 
 ---
 
-## 🎤 Interview Demo Script
+## 🎤  Demo Script
 
 ### 5-Minute Demo Flow
 
@@ -215,7 +213,6 @@ cd tax-calculator-app && docker-compose up
 - Zero-trust security model
 - Infrastructure as Code best practices
 - GitOps declarative deployments
-- UK government domain expertise (HMRC)
 
 ---
 
@@ -229,7 +226,7 @@ cd tax-calculator-app && docker-compose up
 | **Availability** | Single point of failure | Multi-AZ HA |
 | **Monitoring** | Basic logs | Full observability |
 | **Use Case** | Development, Demo | Production |
-| **Best For** | Interview, Testing | Real deployments |
+| **Best For** | , Testing | Real deployments |
 
 ---
 
@@ -237,7 +234,7 @@ cd tax-calculator-app && docker-compose up
 
 **Infrastructure**
 - Terraform 1.0+
-- AWS EKS 1.27+
+- AWS EKS 1.30+
 - HashiCorp Vault 1.14+
 - ArgoCD 2.8+
 
@@ -255,46 +252,21 @@ cd tax-calculator-app && docker-compose up
 
 ---
 
-## 📚 Documentation
 
-### Getting Started
-- [QUICK_START.md](QUICK_START.md) - 2-minute setup
-- [docs/getting-started.md](docs/getting-started.md) - Comprehensive guide
-- [docs/deployment-options.md](docs/deployment-options.md) - Choose your path
-
-### Application
-- [tax-calculator-app/README.md](tax-calculator-app/README.md) - App overview
-- [tax-calculator-app/DEMO_SCRIPT.md](tax-calculator-app/DEMO_SCRIPT.md) - Interview demo
-- [tax-calculator-app/DOCKER_COMPOSE_GUIDE.md](tax-calculator-app/DOCKER_COMPOSE_GUIDE.md) - Local setup
-
-### Infrastructure
-- [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) - Architecture decisions
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design
-- [docs/INTERVIEW_PREP.md](docs/INTERVIEW_PREP.md) - Interview guide
 
 ---
 
-## 🎯 For HMRC Interview
 
-**Position**: Senior DevOps Engineer  
-**Date**: January 8, 2025  
-**Organization**: Her Majesty's Revenue and Customs
 
 ### Why This Project?
 
-1. **Relevant Domain** - Tax calculation (HMRC's core business)
+1. **Relevant Domain** - Tax calculation (Govt)
 2. **Enterprise Patterns** - Production-grade infrastructure
 3. **Modern Stack** - Current best practices (GitOps, Vault, K8s)
-4. **Security Focus** - Government-grade security requirements
+4. **Security Focus** - Enterprise-grade security requirements
 5. **Scalability** - Ready for production deployment
 
-### Key Talking Points
 
-- **Zero-trust security** with Vault dynamic credentials
-- **GitOps** for declarative, auditable deployments
-- **Infrastructure as Code** for reproducible environments
-- **Multi-environment** strategy (dev, staging, prod)
-- **UK government domain** expertise
 
 ---
 
@@ -312,14 +284,14 @@ cd tax-calculator-app && docker-compose up
 
 ## 📄 License
 
-This project is for demonstration and interview purposes.
+This project is for demonstration of secure-by-design project purposes.
 
 ---
 
 ## 🤝 Contact
 
 Built by **Tobi Akinlade**  
-Senior DevOps Engineer | MSc Advanced Computer Science | UK STEM Ambassador
+DevOps Engineer | Platform Engineer| UK STEM Ambassador
 
 - GitHub: [Your GitHub]
 - LinkedIn: [Your LinkedIn]
@@ -331,4 +303,4 @@ Senior DevOps Engineer | MSc Advanced Computer Science | UK STEM Ambassador
 
 ---
 
-Built with ❤️ for the HMRC interview | Showcasing enterprise DevOps excellence
+Built with ❤️ showcasing enterprise DevOps excellence

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tax-calculator
+  labels:
+    name: tax-calculator
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tax-calculator
+  namespace: tax-calculator

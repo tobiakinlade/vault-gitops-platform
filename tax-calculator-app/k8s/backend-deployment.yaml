@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: tax-calculator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tax-calculator
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: tax-calculator
+        component: backend
+    spec:
+      serviceAccountName: tax-calculator
+      containers:
+      - name: backend
+        image: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault.vault.svc.cluster.local:8200"
+        - name: VAULT_ROLE
+          value: "tax-calculator"
+        - name: DATABASE_HOST
+          value: "postgres.tax-calculator.svc.cluster.local"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_NAME
+          value: "taxcalc"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

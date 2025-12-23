@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: tax-calculator
+  labels:
+    app: tax-calculator
+    component: database
+spec:
+  selector:
+    app: tax-calculator
+    component: database
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP

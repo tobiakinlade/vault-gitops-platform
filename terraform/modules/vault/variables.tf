@@ -89,3 +89,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "storage_class" {
+  description = "StorageClass to use for Vault persistent volumes"
+  type        = string
+  default     = "gp3"
+}

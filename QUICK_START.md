@@ -6,7 +6,7 @@ Get the tax calculator running in under 2 minutes.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/vault-gitops-platform.git
+git clone https://github.com/tobiakinlade/vault-gitops-platform.git
 cd vault-gitops-platform
 
 # 2. Start application
@@ -70,7 +70,6 @@ Application auto-deploys via ArgoCD.
 
 ---
 
-## 🎯 For Interview Demo
 
 **Use Docker Compose** - faster, easier to demonstrate:
 
@@ -80,16 +79,6 @@ docker-compose up
 # Ready in 2 minutes!
 ```
 
-**Discuss EKS deployment** - show infrastructure knowledge without live deployment overhead.
 
----
 
-## 📚 Next Steps
 
-- Read [README.md](README.md) for full overview
-- Check [DEMO_SCRIPT.md](tax-calculator-app/DEMO_SCRIPT.md) for interview guide
-- Review [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design
-
----
-
-**Good luck with your interview!** 🎉

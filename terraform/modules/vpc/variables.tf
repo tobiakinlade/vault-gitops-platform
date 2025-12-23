@@ -63,7 +63,7 @@ variable "enable_flow_logs" {
 variable "flow_logs_retention_days" {
   description = "Retention period for VPC Flow Logs in CloudWatch"
   type        = number
-  default     = 7
+  default     = 0
 }
 
 variable "environment" {
@@ -75,4 +75,9 @@ variable "tags" {
   description = "Additional tags for all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "cluster_name" {
+  description = "EKS cluster name for subnet tagging"
+  type        = string
 }

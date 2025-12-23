@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tax-calculator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tax-calculator
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: tax-calculator
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://backend.tax-calculator.svc.cluster.local:8080"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

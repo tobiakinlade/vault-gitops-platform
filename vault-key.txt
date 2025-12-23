@@ -1,0 +1,9 @@
+Recovery Key 1: TIWSTn0Yo950qHWC6mb7GFY8upTM91pusDuyxhU01z/d
+Recovery Key 2: VEI7GLsUCFHQ1j2Wii0xX94IwF8MpM57AWWzZFZwM+YJ
+Recovery Key 3: 6/HHKWEh56sgFenXxOY12reO0FfR1mMmsSOjuyk5GK1W
+Recovery Key 4: KVIyMWVMDjZA8geUOwaWFgciMeblly1k20ZkSdyAFrBJ
+Recovery Key 5: 9KKKcfvRL0rZp4JAKg11kbJsxRJJDkadea3Xi/U6Gke4
+
+Initial Root Token: hvs.f8z2TbRQIgwpAt7RQiYyQ09e
+
+Success! Vault is initialized

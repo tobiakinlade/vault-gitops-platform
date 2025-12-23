@@ -13,7 +13,7 @@ variable "environment" {
 variable "project_name" {
   description = "Project name"
   type        = string
-  default     = "vault-demo"
+  default     = "tax-calculator-app"
 }
 
 # VPC Configuration
@@ -51,13 +51,13 @@ variable "eks_cluster_version" {
 variable "node_instance_types" {
   description = "Instance types for EKS nodes"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.large"]
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes"
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "node_min_size" {
@@ -69,13 +69,13 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "node_disk_size" {
   description = "Disk size for worker nodes in GB"
   type        = number
-  default     = 20
+  default     = 25
 }
 
 # Vault Configuration
@@ -94,5 +94,5 @@ variable "vault_replicas" {
 variable "vault_storage_size" {
   description = "Storage size for Vault data"
   type        = string
-  default     = "7Gi"
+  default     = "10Gi"
 }

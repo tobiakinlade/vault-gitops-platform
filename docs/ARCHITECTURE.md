@@ -435,13 +435,7 @@ Critical alerts:
 - "Zero trust: Every request authenticated and authorized"
 - "Comprehensive audit: All operations logged to CloudWatch"
 
-### Business Value
 
-- **Cost Efficiency**: "Optimized for government budgets, ~$195/month dev"
-- **Compliance**: "Aligned with UK Government Cloud Security Principles"
-- **Scalability**: "Handles 20+ microservices, proven at scale"
-- **Reliability**: "99.9% uptime, multi-AZ, automated failover"
-- **Speed**: "Deployment frequency from weekly to daily"
 
 ---
 

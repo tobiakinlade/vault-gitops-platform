@@ -64,6 +64,7 @@ module "vpc" {
   source = "../../modules/vpc"
 
   vpc_name             = "${var.project_name}-${var.environment}-vpc"
+  cluster_name         = local.cluster_name  
   vpc_cidr             = var.vpc_cidr
   azs                  = local.azs
   private_subnet_cidrs = var.private_subnet_cidrs
@@ -75,6 +76,35 @@ module "vpc" {
   
   environment = var.environment
   tags        = local.common_tags
+}
+
+# Add ECR module 
+module "ecr" {
+  source = "../../modules/ecr"
+
+  project_name          = var.project_name
+  environment           = var.environment
+  force_delete_image    = true  # true for dev, false for prod
+  scan_on_push          = true
+  image_retention_count = 10    # Keep last 10 images
+
+  tags = local.common_tags
+}
+
+# Update outputs to include ECR
+output "ecr_backend_repository_url" {
+  description = "Backend ECR repository URL"
+  value       = module.ecr.backend_repository_url
+}
+
+output "ecr_frontend_repository_url" {
+  description = "Frontend ECR repository URL"
+  value       = module.ecr.frontend_repository_url
+}
+
+output "docker_login_command" {
+  description = "Command to login to ECR"
+  value       = "aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${module.ecr.registry_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
 }
 
 # EKS Module
@@ -166,6 +196,17 @@ module "kms" {
   depends_on = [module.eks]
 }
 
+# EBS CSI Driver Module
+module "ebs_csi_driver" {
+  source = "../../modules/ebs-csi-driver"
+
+  cluster_name   = module.eks.cluster_id
+  environment    = var.environment
+  set_as_default = true
+
+  depends_on = [module.eks]
+}
+
 # Vault Module
 module "vault" {
   source = "../../modules/vault"
@@ -174,18 +215,21 @@ module "vault" {
   vault_release_name  = "vault"
   vault_replicas      = var.vault_replicas
   vault_storage_size  = var.vault_storage_size
-  
+  storage_class       = module.ebs_csi_driver.storage_class_name  
   kms_key_id          = module.kms.kms_key_id
   vault_kms_role_arn  = module.kms.vault_kms_role_arn
   aws_region          = var.aws_region
-  
   enable_ui           = true
   enable_audit_logs   = true
   injector_enabled    = true
   metrics_enabled     = true
-  
-  environment = var.environment
-  tags        = local.common_tags
+  environment         = var.environment
+  tags                = local.common_tags
 
-  depends_on = [module.kms]
+  depends_on = [
+    module.kms,
+    module.ebs_csi_driver  # ADD THIS
+  ]
 }
+
+

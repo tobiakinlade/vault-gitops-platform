@@ -1,95 +1,194 @@
-# 🚀 COMPLETE DEPLOYMENT GUIDE
+Perfect! Let's create a complete deployment workflow from infrastructure to application. Here's the step-by-step process:
 
-**Tax Calculator with HashiCorp Vault - Ready for HMRC Interview**
+🚀 Complete Deployment Workflow
 
-## ⚡ Quick Deploy (30 Minutes)
+Phase 1: Verify Infrastructure ✅
+Step 1: Wait for Terraform to Complete
+bashcd terraform/environments/dev
+terraform apply --auto-approve
 
-This guide will get your application running from scratch in 30 minutes.
+# Wait for completion (~20-25 minutes)
+# Should end with: "Apply complete! Resources: XX added, 0 changed, 0 destroyed"
+Step 2: Configure kubectl
+bash aws eks update-kubeconfig --name Tax-Calculator-dev-cluster --region eu-west-2
+Step 3: Verify Infrastructure
+bash# Check nodes
+kubectl get nodes
+# Should show 2-3 nodes Ready
 
-### Prerequisites Checklist
+# Check EBS CSI driver
+kubectl get pods -n kube-system | grep ebs
+# Should show 3+ Running pods
 
-```bash
-✅ Kubernetes cluster running (from Week 1)
-✅ Vault installed and initialized
-✅ kubectl configured
-✅ Docker installed (for building images)
-```
+# Check StorageClass
+kubectl get storageclass
+# Should show gp3 (default)
 
----
+# Check Vault pods
+kubectl get pods -n vault
+# Should show vault-0, vault-1 Running
 
-## 📋 Step-by-Step Deployment
+# Check PVCs
+kubectl get pvc -n vault
+# Should show all Bound
 
-### Step 1: Setup Vault (10 minutes)
+Phase 2: Initialize Vault 🔐
+Step 4: Initialize Vault
+bashkubectl exec -it vault-0 -n vault -- vault operator init
+SAVE THE OUTPUT! You'll get:
 
-```bash
-# 1.1 Enable database secrets engine
-kubectl exec -n vault vault-0 -- vault secrets enable database
+5 Unseal Keys
+1 Root Token
 
-# 1.2 Enable transit encryption
-kubectl exec -n vault vault-0 -- vault secrets enable transit
+Step 5: Unseal Vault (Both Pods)
+bash# Unseal vault-0 (use any 3 of 5 keys)
+kubectl exec -it vault-0 -n vault -- vault operator unseal 4kKrp+DyLQO6UIDgYNivC6R4cs3vyrITq60l9uC6WJ5g
+kubectl exec -it vault-0 -n vault -- vault operator unseal R9zmv7Issv9R7VbCroanEs/QHy5RLRyQaeM3jf4EGhEB
+kubectl exec -it vault-0 -n vault -- vault operator unseal dmLwkokogrQMxlm5PIa+0kM18spg/XQ/CZ2TZqlDJ+i4
 
-# 1.3 Create transit encryption key
-kubectl exec -n vault vault-0 -- vault write -f transit/keys/tax-calculator
+oluwatobiakinlade@MacBookPro dev % kubectl exec -it vault-0 -n vault -- vault operator init
+Recovery Key 1: 4kKrp+DyLQO6UIDgYNivC6R4cs3vyrITq60l9uC6WJ5g
+Recovery Key 2: R9zmv7Issv9R7VbCroanEs/QHy5RLRyQaeM3jf4EGhEB
+Recovery Key 3: dmLwkokogrQMxlm5PIa+0kM18spg/XQ/CZ2TZqlDJ+i4
+Recovery Key 4: P385EdF2fJosTAn0Illg9pEKJn9zbcfBiiQYPJQV5WxA
+Recovery Key 5: X6/5t4tDvOgAnQ0U21grAehJahDfOhhK7BLKHEBgjiLg
 
-# 1.4 Create Vault policy
-cat <<EOF | kubectl exec -i -n vault vault-0 -- vault policy write tax-calculator -
-path "database/creds/tax-calculator-role" {
-  capabilities = ["read"]
-}
+# Unseal vault-1
+kubectl exec -it vault-1 -n vault -- vault operator unseal 4kKrp+DyLQO6UIDgYNivC6R4cs3vyrITq60l9uC6WJ5g
+kubectl exec -it vault-1 -n vault -- vault operator unseal R9zmv7Issv9R7VbCroanEs/QHy5RLRyQaeM3jf4EGhEB
+kubectl exec -it vault-1 -n vault -- vault operator unseal dmLwkokogrQMxlm5PIa+0kM18spg/XQ/CZ2TZqlDJ+i4
+Step 6: Login to Vault
+bash kubectl exec -it vault-0 -n vault -- vault login <ROOT_TOKEN>
+Step 7: Verify Vault Status
+bash kubectl exec -it vault-0 -n vault -- vault status
+kubectl exec -it vault-0 -n vault -- vault operator generate-root -init
+A One-Time-Password has been generated for you and is shown in the OTP field.
+You will need this value to decode the resulting root token, so keep it safe.
+Nonce         b6c5e42c-eb62-916f-739b-ee61fca5365e
+Started       true
+Progress      0/3
+Complete      false
+OTP           8rjA5mw3KuLRBnyeyz9REkNeADv4
+OTP Length    28
 
-path "transit/encrypt/tax-calculator" {
-  capabilities = ["update"]
-}
 
-path "transit/decrypt/tax-calculator" {
-  capabilities = ["update"]
-}
 
-path "secret/data/config/tax-calculator" {
-  capabilities = ["read"]
-}
-EOF
 
-# 1.5 Enable Kubernetes auth (if not already)
-kubectl exec -n vault vault-0 -- vault auth enable kubernetes || true
+kubectl exec -it vault-0 -n vault -- vault operator generate-root \
+  -nonce=b6c5e42c-eb62-916f-739b-ee61fca5365e
 
-# 1.6 Configure Kubernetes auth
-kubectl exec -n vault vault-0 -- vault write auth/kubernetes/config \
-  kubernetes_host="https://kubernetes.default.svc:443"
+input the keys
 
-# 1.7 Create Kubernetes auth role
-kubectl exec -n vault vault-0 -- vault write auth/kubernetes/role/tax-calculator \
-  bound_service_account_names=tax-calculator \
-  bound_service_account_namespaces=default \
-  policies=tax-calculator \
-  ttl=24h
+kubectl exec -it vault-0 -n vault -- vault operator generate-root \
+  -decode=UAQZbwY4MwAhGT4EAD8jAS81SwE1DRlXeAwjfg \
+  -otp=8rjA5mw3KuLRBnyeyz9REkNeADv4
 
-echo "✅ Vault configuration complete!"
-```
 
-### Step 2: Deploy PostgreSQL (5 minutes)
 
-```bash
-# 2.1 Create PostgreSQL deployment
-kubectl apply -f - <<EOF
+oluwatobiakinlade@MacBookPro dev % kubectl exec -it vault-0 -n vault -- vault operator generate-root \
+  -decode=UAQZbwY4MwAhGT4EAD8jAS81SwE1DRlXeAwjfg \
+  -otp=8rjA5mw3KuLRBnyeyz9REkNeADv4
+E1221 13:42:05.254411   90126 websocket.go:296] Unknown stream id 1, discarding message
+                                                                                       hvs.3UD3jlrVBQZdVOrSpfW29HUJ
+
+kubectl exec -it vault-0 -n vault -- vault login hvs.3UD3jlrVBQZdVOrSpfW29HUJ
+# Should show: Sealed = false
+
+Phase 3: Build & Push Container Images 🐳
+Step 8: Create ECR Repositories
+# Get AWS account ID
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+AWS_REGION="eu-west-2"
+
+# Create ECR repositories
+aws ecr create-repository \
+  --repository-name tax-calculator-backend \
+  --region $AWS_REGION
+
+aws ecr create-repository \
+  --repository-name tax-calculator-frontend \
+  --region $AWS_REGION
+Step 9: Login to ECR
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+Step 10: Build and Push Backend
+bash cd tax-calculator-app/backend
+
+# Build image
+docker build -t tax-calculator-backend:latest .
+
+# Tag for ECR
+docker tag tax-calculator-backend:latest \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tax-calculator-backend:latest
+
+# Push to ECR
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tax-calculator-backend:latest
+Step 11: Build and Push Frontend
+bashcd ../frontend
+
+# Build image
+docker build -t tax-calculator-frontend:latest .
+
+# Tag for ECR
+docker tag tax-calculator-frontend:latest \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tax-calculator-frontend:latest
+
+# Push to ECR
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tax-calculator-frontend:latest
+
+Phase 4: Configure Vault Secret Engines 🔑
+Step 12: Enable Secret Engines
+bash# Enable database secrets engine
+kubectl exec -it vault-0 -n vault -- vault secrets enable database
+
+# Enable transit encryption engine
+kubectl exec -it vault-0 -n vault -- vault secrets enable transit
+
+# Enable KV v2 secrets engine
+kubectl exec -it vault-0 -n vault -- vault secrets enable -path=secret kv-v2
+
+# Enable Kubernetes auth
+kubectl exec -it vault-0 -n vault -- vault auth enable kubernetes
+Step 13: Configure Kubernetes Auth
+# Get Kubernetes details
+KUBERNETES_HOST="https://kubernetes.default.svc:443"
+
+# Get service account token
+SA_JWT_TOKEN=$(kubectl get secret vault -n vault -o jsonpath='{.data.token}' | base64 -d)
+
+# Get CA cert
+SA_CA_CRT=$(kubectl get secret vault -n vault -o jsonpath='{.data.ca\.crt}' | base64 -d)
+
+kubectl exec -it vault-0 -n vault -- sh -c '
+vault write auth/kubernetes/config \
+  kubernetes_host="https://kubernetes.default.svc:443" \
+  kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+  token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+'
+
+# Configure Kubernetes auth
+kubectl exec -it vault-0 -n vault -- vault write auth/kubernetes/config \
+  kubernetes_host="$KUBERNETES_HOST" \
+  kubernetes_ca_cert="$SA_CA_CRT" \
+  token_reviewer_jwt="$SA_JWT_TOKEN"
+Step 14: Create Transit Encryption Key
+kubectl exec -it vault-0 -n vault -- vault write -f transit/keys/tax-calculator
+Step 15: Configure Database Connection
+First, deploy PostgreSQL:
+bash# Create PostgreSQL deployment
+cat <<EOF | kubectl apply -f -
 apiVersion: v1
-kind: Service
+kind: Namespace
 metadata:
-  name: postgres
-spec:
-  selector:
-    app: postgres
-  ports:
-    - port: 5432
-      targetPort: 5432
-  clusterIP: None
+  name: tax-calculator
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: postgres
+  namespace: tax-calculator
 spec:
-  serviceName: postgres
   replicas: 1
   selector:
     matchLabels:
@@ -101,130 +200,137 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:15-alpine
-        ports:
-        - containerPort: 5432
+        image: postgres:15
         env:
         - name: POSTGRES_DB
-          value: "taxcalc"
+          value: taxcalc
         - name: POSTGRES_USER
-          value: "postgres"
+          value: postgres
         - name: POSTGRES_PASSWORD
-          value: "postgres123"  # Change in production!
+          value: postgres123
+        ports:
+        - containerPort: 5432
         volumeMounts:
-        - name: postgres-data
+        - name: postgres-storage
           mountPath: /var/lib/postgresql/data
-  volumeClaimTemplates:
-  - metadata:
-      name: postgres-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: gp3
-      resources:
-        requests:
-          storage: 5Gi
-EOF
-
-# 2.2 Wait for PostgreSQL to be ready
-kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
-
-echo "✅ PostgreSQL deployed!"
-```
-
-### Step 3: Configure Vault Database Connection (3 minutes)
-
-```bash
-# 3.1 Configure database connection in Vault
-kubectl exec -n vault vault-0 -- vault write database/config/postgres \
-  plugin_name=postgresql-database-plugin \
-  allowed_roles="tax-calculator-role" \
-  connection_url="postgresql://{{username}}:{{password}}@postgres.default.svc.cluster.local:5432/taxcalc?sslmode=disable" \
-  username="postgres" \
-  password="postgres123"
-
-# 3.2 Create database role for dynamic credentials
-kubectl exec -n vault vault-0 -- vault write database/roles/tax-calculator-role \
-  db_name=postgres \
-  creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
-    GRANT ALL PRIVILEGES ON DATABASE taxcalc TO \"{{name}}\"; \
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
-  default_ttl="1h" \
-  max_ttl="24h"
-
-# 3.3 Test dynamic credentials
-echo "Testing Vault database credentials..."
-kubectl exec -n vault vault-0 -- vault read database/creds/tax-calculator-role
-
-echo "✅ Vault database configuration complete!"
-```
-
-### Step 4: Build and Deploy Backend (7 minutes)
-
-```bash
-# 4.1 Build backend image
-cd backend
-docker build -t tax-calculator-backend:latest .
-
-# 4.2 (Optional) Push to registry
-# docker tag tax-calculator-backend:latest your-registry/tax-calculator-backend:latest
-# docker push your-registry/tax-calculator-backend:latest
-
-# 4.3 Load image into kind (if using kind)
-kind load docker-image tax-calculator-backend:latest --name vault-demo
-
-# 4.4 Deploy backend
-cd ..
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tax-calculator
+      volumes:
+      - name: postgres-storage
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tax-calculator-backend
+  name: postgres
+  namespace: tax-calculator
 spec:
   selector:
-    app: tax-calculator-backend
+    app: postgres
   ports:
-    - port: 8080
-      targetPort: 8080
+  - port: 5432
+    targetPort: 5432
+EOF
+Wait for PostgreSQL to be ready:
+bashkubectl wait --for=condition=ready pod -l app=postgres -n tax-calculator --timeout=300s
+Configure Vault database secrets:
+bashkubectl exec -it vault-0 -n vault -- vault write database/config/postgres \
+  plugin_name=postgresql-database-plugin \
+  allowed_roles="tax-calculator-role" \
+  connection_url="postgresql://{{username}}:{{password}}@postgres.tax-calculator.svc.cluster.local:5432/taxcalc?sslmode=disable" \
+  username="postgres" \
+  password="postgres123"
+
+kubectl exec -it vault-0 -n vault -- vault write database/roles/tax-calculator-role \
+  db_name=postgres \
+  creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
+    GRANT ALL PRIVILEGES ON DATABASE taxcalc TO \"{{name}}\";" \
+  default_ttl="1h" \
+  max_ttl="24h"
+Step 16: Create Vault Policy
+bashkubectl exec -it vault-0 -n vault -- vault policy write tax-calculator - <<EOF
+# Read dynamic database credentials
+path "database/creds/tax-calculator-role" {
+  capabilities = ["read"]
+}
+
+# Transit encryption
+path "transit/encrypt/tax-calculator" {
+  capabilities = ["update"]
+}
+
+path "transit/decrypt/tax-calculator" {
+  capabilities = ["update"]
+}
+
+# KV secrets
+path "secret/data/config/tax-calculator" {
+  capabilities = ["read"]
+}
+EOF
+Step 17: Create Kubernetes Role
+kubectl exec -it vault-0 -n vault -- vault write auth/kubernetes/role/tax-calculator \
+  bound_service_account_names=tax-calculator \
+  bound_service_account_namespaces=tax-calculator \
+  policies=tax-calculator \
+  ttl=1h
+
+Phase 5: Deploy Application to Kubernetes 🚀
+Step 18: Create Kubernetes Manifests
+Create directory:
+mkdir -p k8s
+cd k8s
+1. Namespace and ServiceAccount:
+yaml# namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tax-calculator
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tax-calculator
+  namespace: tax-calculator
+1. Backend Deployment:
+yaml# backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tax-calculator-backend
+  name: backend
+  namespace: tax-calculator
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: tax-calculator-backend
+      app: tax-calculator
+      component: backend
   template:
     metadata:
       labels:
-        app: tax-calculator-backend
+        app: tax-calculator
+        component: backend
     spec:
       serviceAccountName: tax-calculator
       containers:
       - name: backend
-        image: tax-calculator-backend:latest
-        imagePullPolicy: IfNotPresent
+        image: <AWS_ACCOUNT_ID>.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend:latest
         ports:
         - containerPort: 8080
         env:
-        - name: PORT
-          value: "8080"
         - name: VAULT_ADDR
-          value: "http://vault.vault:8200"
-        - name: VAULT_ROLE
-          value: "tax-calculator"
-        - name: DB_HOST
-          value: "postgres"
-        - name: DB_PORT
+          value: "http://vault.vault.svc.cluster.local:8200"
+        - name: DATABASE_HOST
+          value: "postgres.tax-calculator.svc.cluster.local"
+        - name: DATABASE_PORT
           value: "5432"
-        - name: DB_NAME
+        - name: DATABASE_NAME
           value: "taxcalc"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           httpGet:
             path: /health
@@ -237,226 +343,129 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
-EOF
-
-# 4.5 Wait for backend to be ready
-kubectl wait --for=condition=ready pod -l app=tax-calculator-backend --timeout=300s
-
-echo "✅ Backend deployed!"
-```
-
-### Step 5: Build and Deploy Frontend (5 minutes)
-
-```bash
-# 5.1 Build frontend image
-cd frontend
-docker build -t tax-calculator-frontend:latest .
-
-# 5.2 Load image into kind (if using kind)
-kind load docker-image tax-calculator-frontend:latest --name vault-demo
-
-# 5.3 Deploy frontend
-cd ..
-kubectl apply -f - <<EOF
+1. Backend Service:
+yaml# backend-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: tax-calculator-frontend
+  name: backend
+  namespace: tax-calculator
 spec:
   selector:
-    app: tax-calculator-frontend
+    app: tax-calculator
+    component: backend
   ports:
-    - port: 80
-      targetPort: 80
-  type: LoadBalancer
----
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+1. Frontend Deployment:
+yaml# frontend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tax-calculator-frontend
+  name: frontend
+  namespace: tax-calculator
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: tax-calculator-frontend
+      app: tax-calculator
+      component: frontend
   template:
     metadata:
       labels:
-        app: tax-calculator-frontend
+        app: tax-calculator
+        component: frontend
     spec:
       containers:
       - name: frontend
-        image: tax-calculator-frontend:latest
-        imagePullPolicy: IfNotPresent
+        image: <AWS_ACCOUNT_ID>.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend:latest
         ports:
         - containerPort: 80
         env:
         - name: REACT_APP_API_URL
-          value: "http://tax-calculator-backend:8080"
-EOF
+          value: "http://backend.tax-calculator.svc.cluster.local:8080"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+1. Frontend Service (LoadBalancer):
+yaml# frontend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: tax-calculator
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  selector:
+    app: tax-calculator
+    component: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+Step 19: Deploy Application
+bash# Replace AWS_ACCOUNT_ID in manifests
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+sed -i '' "s/<AWS_ACCOUNT_ID>/$AWS_ACCOUNT_ID/g" *.yaml
 
-# 5.4 Wait for frontend to be ready
-kubectl wait --for=condition=ready pod -l app=tax-calculator-frontend --timeout=300s
+# Apply manifests
+kubectl apply -f namespace.yaml
+kubectl apply -f backend-deployment.yaml
+kubectl apply -f backend-service.yaml
+kubectl apply -f frontend-deployment.yaml
+kubectl apply -f frontend-service.yaml
 
-echo "✅ Frontend deployed!"
-```
+# Watch deployment
+kubectl get pods -n tax-calculator -w
+Step 20: Get Application URL
+bashkubectl get svc frontend -n tax-calculator
 
----
+# Wait for EXTERNAL-IP
+# Takes 2-3 minutes for LoadBalancer to provision
+Once you have the EXTERNAL-IP:
+bashexport APP_URL=$(kubectl get svc frontend -n tax-calculator -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "Application URL: http://$APP_URL"
 
-## 🎯 Access Your Application
+Phase 6: Verify Application ✅
+Step 21: Test Application
+bash# Open in browser
+open http://$APP_URL
 
-```bash
-# Option 1: Port Forward (Quick)
-kubectl port-forward svc/tax-calculator-frontend 3000:80
+# Or curl
+curl http://$APP_URL
+Step 22: Check Backend Logs
+bashkubectl logs -n tax-calculator deployment/backend -f
+Look for:
 
-# Open browser: http://localhost:3000
+✅ Connected to Vault
+✅ Got dynamic database credentials
+✅ Database connection successful
 
-# Option 2: LoadBalancer (if available)
-kubectl get svc tax-calculator-frontend
+Step 23: Test Tax Calculation
+Go to http://$APP_URL and:
 
-# Option 3: Ingress (if configured)
-# Access via your ingress URL
-```
+Enter income: 50000
+Enter NI number: AB123456C
+Tax year: 2024/2025
+Click "Calculate Tax"
 
----
+Expected result:
 
-## ✅ Verification Checklist
+Income Tax: £7,486
+NI: £4,504.80
+Take Home: £38,009.20
 
-```bash
-# 1. Check all pods are running
-kubectl get pods
 
-# Expected output:
-# NAME                                       READY   STATUS    RESTARTS   AGE
-# postgres-0                                 1/1     Running   0          5m
-# tax-calculator-backend-xxx                 1/1     Running   0          3m
-# tax-calculator-backend-yyy                 1/1     Running   0          3m
-# tax-calculator-frontend-xxx                1/1     Running   0          1m
-# tax-calculator-frontend-yyy                1/1     Running   0          1m
-
-# 2. Check backend health
-kubectl port-forward svc/tax-calculator-backend 8080:8080 &
-curl http://localhost:8080/health
-
-# Expected: {"status":"healthy","database":"healthy","vault":"healthy"}
-
-# 3. Test calculation
-curl -X POST http://localhost:8080/api/v1/calculate \
-  -H "Content-Type: application/json" \
-  -d '{"income":50000,"national_insurance":"AB123456C","tax_year":"2024/2025"}'
-
-# 4. Check Vault integration
-kubectl logs -l app=tax-calculator-backend | grep Vault
-
-# Expected: See Vault authentication and credential retrieval logs
-```
-
----
-
-## 🎪 Demo Checklist (For Interview)
-
-```bash
-✅ Application accessible via browser
-✅ Can perform tax calculation
-✅ Results show encrypted NI number
-✅ History shows past calculations
-✅ Backend logs show Vault integration
-✅ Can demonstrate dynamic credentials
-✅ Can show encrypted data in database
-✅ Health checks pass for all services
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Backend Won't Start
-
-```bash
-# Check logs
-kubectl logs -l app=tax-calculator-backend --tail=100
-
-# Common issues:
-# 1. Can't connect to Vault
-kubectl exec -n vault vault-0 -- vault status
-
-# 2. Service account missing
-kubectl get sa tax-calculator
-
-# 3. Vault policy not applied
-kubectl exec -n vault vault-0 -- vault policy read tax-calculator
-```
-
-### Database Connection Fails
-
-```bash
-# Check PostgreSQL
-kubectl exec -it postgres-0 -- psql -U postgres -d taxcalc -c "SELECT 1;"
-
-# Check Vault database config
-kubectl exec -n vault vault-0 -- vault read database/config/postgres
-
-# Test dynamic credentials
-kubectl exec -n vault vault-0 -- vault read database/creds/tax-calculator-role
-```
-
-### Frontend Can't Reach Backend
-
-```bash
-# Check service
-kubectl get svc tax-calculator-backend
-
-# Test backend directly
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl http://tax-calculator-backend:8080/health
-```
-
----
-
-## 🔄 Quick Teardown
-
-```bash
-# Delete all resources
-kubectl delete deployment tax-calculator-backend tax-calculator-frontend
-kubectl delete statefulset postgres
-kubectl delete svc tax-calculator-backend tax-calculator-frontend postgres
-kubectl delete sa tax-calculator
-kubectl delete pvc postgres-data-postgres-0
-
-# Clean up Vault (optional)
-kubectl exec -n vault vault-0 -- vault secrets disable database
-kubectl exec -n vault vault-0 -- vault secrets disable transit
-kubectl exec -n vault vault-0 -- vault policy delete tax-calculator
-kubectl exec -n vault vault-0 -- vault auth disable kubernetes/role/tax-calculator
-```
-
----
-
-## 📝 Next Steps for Interview Prep
-
-1. ✅ **Practice the demo** - Can you deploy in < 5 minutes?
-2. ✅ **Memorize talking points** - See README.md
-3. ✅ **Prepare questions** - What they might ask
-4. ✅ **Test failure scenarios** - Kill pods, rotate credentials
-5. ✅ **Document your learnings** - What you discovered
-
----
-
-## 🎓 Interview Day Checklist
-
-**Day Before:**
-- [ ] Test complete deployment end-to-end
-- [ ] Record a practice demo video
-- [ ] Review Vault concepts
-- [ ] Prepare 3 technical questions to ask
-
-**Interview Day:**
-- [ ] Have deployment working before call
-- [ ] Terminal ready with commands
-- [ ] Browser tabs prepared
-- [ ] Backup slides/diagrams ready
-- [ ] Calm, confident, ready to impress! 🚀
-
----
-
-**You've got this, Tobi!** This is a solid, production-ready demo that shows you understand government security requirements. Good luck with your HMRC interview on January 8th! 💪
+oluwatobiakinlade@MacBookPro dev % kubectl exec -it vault-0 -n vault -- vault operator init
+Recovery Key 1: 4kKrp+DyLQO6UIDgYNivC6R4cs3vyrITq60l9uC6WJ5g
+Recovery Key 2: R9zmv7Issv9R7VbCroanEs/QHy5RLRyQaeM3jf4EGhEB
+Recovery Key 3: dmLwkokogrQMxlm5PIa+0kM18spg/XQ/CZ2TZqlDJ+i4
+Recovery Key 4: P385EdF2fJosTAn0Illg9pEKJn9zbcfBiiQYPJQV5WxA
+Recovery Key 5: X6/5t4tDvOgAnQ0U21grAehJahDfOhhK7BLKHEBgjiLg

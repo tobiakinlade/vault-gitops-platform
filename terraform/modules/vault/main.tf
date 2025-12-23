@@ -67,7 +67,7 @@ resource "helm_release" "vault" {
     yamlencode({
       global = {
         enabled = true
-        tlsDisable = false
+        tlsDisable = true  # CHANGED: Disable TLS for dev
       }
 
       injector = {
@@ -117,32 +117,16 @@ resource "helm_release" "vault" {
 
         livenessProbe = {
           enabled = true
-          path    = "/v1/sys/health?standbyok=true"
+          path    = "/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200"
           initialDelaySeconds = 60
         }
 
         extraEnvironmentVars = {
-          VAULT_CACERT = "/vault/userconfig/vault-tls/ca.crt"
-          AWS_REGION   = var.aws_region
+          AWS_REGION = var.aws_region  
         }
 
-        volumes = [
-          {
-            name = "vault-tls"
-            secret = {
-              secretName  = "vault-tls"
-              defaultMode = 420
-            }
-          }
-        ]
-
-        volumeMounts = [
-          {
-            name      = "vault-tls"
-            mountPath = "/vault/userconfig/vault-tls"
-            readOnly  = true
-          }
-        ]
+        volumes      = []
+        volumeMounts = []
 
         serviceAccount = {
           create = false
@@ -173,12 +157,9 @@ resource "helm_release" "vault" {
               ui = ${var.enable_ui}
 
               listener "tcp" {
-                tls_disable = 0
+                tls_disable = 1  # CHANGED: Disable TLS
                 address = "[::]:8200"
                 cluster_address = "[::]:8201"
-                tls_cert_file = "/vault/userconfig/vault-tls/tls.crt"
-                tls_key_file  = "/vault/userconfig/vault-tls/tls.key"
-                tls_client_ca_file = "/vault/userconfig/vault-tls/ca.crt"
                 
                 telemetry {
                   unauthenticated_metrics_access = ${var.metrics_enabled}
@@ -189,18 +170,15 @@ resource "helm_release" "vault" {
                 path = "/vault/data"
                 
                 retry_join {
-                  leader_api_addr = "https://vault-0.vault-internal:8200"
-                  leader_ca_cert_file = "/vault/userconfig/vault-tls/ca.crt"
+                  leader_api_addr = "http://vault-0.vault-internal:8200"  # CHANGED: http
                 }
                 
                 retry_join {
-                  leader_api_addr = "https://vault-1.vault-internal:8200"
-                  leader_ca_cert_file = "/vault/userconfig/vault-tls/ca.crt"
+                  leader_api_addr = "http://vault-1.vault-internal:8200"  # CHANGED: http
                 }
                 
                 retry_join {
-                  leader_api_addr = "https://vault-2.vault-internal:8200"
-                  leader_ca_cert_file = "/vault/userconfig/vault-tls/ca.crt"
+                  leader_api_addr = "http://vault-2.vault-internal:8200"  # CHANGED: http
                 }
               }
 

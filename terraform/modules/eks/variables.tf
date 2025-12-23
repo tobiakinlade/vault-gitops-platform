@@ -57,13 +57,13 @@ variable "node_group_name" {
 variable "node_instance_types" {
   description = "List of instance types for the node group"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.large"]
 }
 
 variable "node_disk_size" {
   description = "Disk size in GB for worker nodes"
   type        = number
-  default     = 20
+  default     = 25
 }
 
 variable "node_desired_size" {
@@ -81,7 +81,7 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 5
+  default     = 4
 }
 
 variable "enable_cluster_autoscaler" {

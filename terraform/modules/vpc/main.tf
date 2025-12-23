@@ -39,7 +39,6 @@ resource "aws_internet_gateway" "main" {
   )
 }
 
-# Public Subnets
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
 
@@ -53,14 +52,12 @@ resource "aws_subnet" "public" {
     {
       Name = "${var.vpc_name}-public-${var.azs[count.index]}"
       Type = "public"
-      # Required tags for EKS
-      "kubernetes.io/role/elb"                        = "1"
-      "kubernetes.io/cluster/${var.vpc_name}-cluster" = "shared"
+      "kubernetes.io/role/elb" = "1"
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"  
     }
   )
 }
 
-# Private Subnets
 resource "aws_subnet" "private" {
   count = length(var.private_subnet_cidrs)
 
@@ -73,9 +70,8 @@ resource "aws_subnet" "private" {
     {
       Name = "${var.vpc_name}-private-${var.azs[count.index]}"
       Type = "private"
-      # Required tags for EKS
-      "kubernetes.io/role/internal-elb"               = "1"
-      "kubernetes.io/cluster/${var.vpc_name}-cluster" = "shared"
+      "kubernetes.io/role/internal-elb" = "1"
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"  
     }
   )
 }
