@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-sonarqube
+  namespace: sonarqube
+spec:
+  serviceName: postgres-sonarqube
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-sonarqube
+  template:
+    metadata:
+      labels:
+        app: postgres-sonarqube
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_USER
+          value: sonarUser
+        - name: POSTGRES_PASSWORD
+          value: sonarpass
+        - name: POSTGRES_DB
+          value: sonarDB
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: gp3
+      resources:
+        requests:
+          storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-sonarqube
+  namespace: sonarqube
+spec:
+  selector:
+    app: postgres-sonarqube
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None

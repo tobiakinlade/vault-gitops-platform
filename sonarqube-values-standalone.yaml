@@ -1,0 +1,47 @@
+replicaCount: 1
+
+# DISABLE bundled PostgreSQL
+postgresql:
+  enabled: false
+
+# Use standalone PostgreSQL
+jdbcOverwrite:
+  enable: true
+  jdbcUrl: "jdbc:postgresql://postgres-sonarqube.sonarqube.svc.cluster.local:5432/sonarDB"
+  jdbcUsername: "sonarUser"
+  jdbcPassword: "sonarpass"
+
+image:
+  repository: sonarqube
+  tag: "10.3.0-community"
+
+persistence:
+  enabled: true
+  storageClass: gp3
+  size: 10Gi
+
+service:
+  type: LoadBalancer
+  port: 9000
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+startupProbe:
+  initialDelaySeconds: 90
+  periodSeconds: 10
+  failureThreshold: 30
+
+livenessProbe:
+  initialDelaySeconds: 90
+  periodSeconds: 30
+
+readinessProbe:
+  initialDelaySeconds: 90
+  periodSeconds: 30
+  failureThreshold: 6

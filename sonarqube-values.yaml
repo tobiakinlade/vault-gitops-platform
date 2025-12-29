@@ -1,0 +1,78 @@
+replicaCount: 1
+
+# PostgreSQL - FORCE NEWER VERSION
+postgresql:
+  enabled: true
+  auth:
+    username: sonarUser
+    password: sonarpass
+    database: sonarDB
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: "15.5.0-debian-11-r14"  # Force specific working version
+  primary:
+    persistence:
+      enabled: true
+      storageClass: gp3
+      size: 20Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+# SonarQube image
+image:
+  repository: sonarqube
+  tag: "10.3.0-community"
+  pullPolicy: IfNotPresent
+
+persistence:
+  enabled: true
+  storageClass: gp3
+  size: 10Gi
+
+service:
+  type: LoadBalancer
+  port: 9000
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+# Probes with longer timeouts for slow startup
+startupProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 30
+  timeoutSeconds: 5
+  httpGet:
+    scheme: HTTP
+    path: /api/system/status
+    port: 9000
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 5
+  httpGet:
+    scheme: HTTP
+    path: /api/system/status
+    port: 9000
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 6
+  timeoutSeconds: 5
+  httpGet:
+    scheme: HTTP
+    path: /api/system/status
+    port: 9000
