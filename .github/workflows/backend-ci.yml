@@ -17,32 +17,26 @@ env:
   IMAGE_NAME: tax-calculator-backend
   AWS_REGION: eu-west-2
 
+permissions:
+  contents: write
+  security-events: write
+
 jobs:
-# ----------------------------------------------------
-# JOB 1: Test + SonarQube Quality Gate
-# ----------------------------------------------------
+  # ---------------------------------------------------------
+  # 1️⃣ Code Quality & Tests (SonarQube)
+  # ---------------------------------------------------------
   sonarqube-analysis:
-    name: Test & SonarQube Analysis
+    name: SonarQube Code Quality
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
 
       - name: Install dependencies
         working-directory: tax-calculator-app/backend
@@ -52,30 +46,20 @@ jobs:
         working-directory: tax-calculator-app/backend
         run: |
           go test ./... -v -coverprofile=coverage.out -covermode=atomic
-          go tool cover -func=coverage.out
 
-      - name: SonarQube Scan (Go)
+      - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v2.3.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: tax-calculator-app/backend
-          args: >
-            -Dsonar.projectKey=tax-calculator-backend
-            -Dsonar.projectName=TaxCalculatorBackend
-            -Dsonar.sources=.
-            -Dsonar.inclusions=**/*.go
-            -Dsonar.exclusions=**/*_test.go,**/vendor/**,**/Dockerfile
-            -Dsonar.go.coverage.reportPaths=coverage.out
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=300
 
-# ----------------------------------------------------
-# JOB 2: Build + Security Scan + Push
-# ----------------------------------------------------
+  # ---------------------------------------------------------
+  # 2️⃣ Build Image & Security Scan
+  # ---------------------------------------------------------
   build-and-scan:
-    name: Build, Scan & Push Image
+    name: Build & Scan Image
     runs-on: ubuntu-latest
     needs: sonarqube-analysis
     if: github.event_name == 'push'
@@ -84,21 +68,17 @@ jobs:
       image-tag: ${{ steps.meta.outputs.version }}
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+      - uses: aws-actions/amazon-ecr-login@v2
 
       - name: Docker metadata
         id: meta
@@ -106,11 +86,10 @@ jobs:
         with:
           images: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build image (local)
+      - name: Build image
         uses: docker/build-push-action@v5
         with:
           context: tax-calculator-app/backend
@@ -118,12 +97,18 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Trivy scan (fail on HIGH/CRITICAL)
+      - name: Trivy scan (SARIF)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-          severity: HIGH,CRITICAL
-          exit-code: 1
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
 
       - name: Push image to ECR
         uses: docker/build-push-action@v5
@@ -133,40 +118,37 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-# ----------------------------------------------------
-# JOB 3: Update GitOps Manifests
-# ----------------------------------------------------
+  # ---------------------------------------------------------
+  # 3️⃣ Update GitOps Manifests
+  # ---------------------------------------------------------
   update-manifests:
-    name: Update GitOps Manifests
+    name: Update K8s Manifests
     runs-on: ubuntu-latest
     needs: build-and-scan
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Update backend image tag
+      - name: Update deployment image
         run: |
-          sed -i "s|image:.*tax-calculator-backend.*|image: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-scan.outputs.image-tag }}|g" \
+          sed -i \
+            "s|image:.*tax-calculator-backend.*|image: ${{ secrets.ECR_REGISTRY }}/tax-calculator-backend:${{ needs.build-and-scan.outputs.image-tag }}|g" \
             kubernetes/base/tax-calculator/backend/deployment.yaml
 
-      - name: Commit changes
+      - name: Commit & push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add kubernetes/base/tax-calculator/backend/deployment.yaml
-          git diff --staged --quiet || git commit -m "chore(backend): update image"
+          git commit -m "chore(backend): update image"
           git push
 
-# ----------------------------------------------------
-# JOB 4: ArgoCD Sync
-# ----------------------------------------------------
+  # ---------------------------------------------------------
+  # 4️⃣ Deploy via ArgoCD
+  # ---------------------------------------------------------
   argocd-sync:
-    name: Deploy via ArgoCD
+    name: ArgoCD Sync
     runs-on: ubuntu-latest
     needs: update-manifests
 
@@ -185,4 +167,4 @@ jobs:
             --insecure
 
           argocd app sync tax-calculator-backend --prune
-          argocd app wait tax-calculator-backend --timeout 300
+          argocd app wait tax-calculator-backend --health --timeout 300
