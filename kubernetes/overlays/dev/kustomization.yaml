@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: tax-calculator
+
+resources:
+  - ../../base/tax-calculator
+
+images:
+  - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend
+    newTag: placeholder
+  - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
+    newTag: placeholder

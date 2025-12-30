@@ -156,7 +156,7 @@ jobs:
           IMAGE_TAG="${{ needs.build-and-scan.outputs.image-tag }}"
           echo "Updating backend to image tag: ${IMAGE_TAG}"
           
-          cd kubernetes/overlays/production
+          cd kubernetes/overlays/dev
           
           kustomize edit set image \
             ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}=${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
@@ -168,7 +168,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add kubernetes/overlays/production/kustomization.yaml
+          git add kubernetes/overlays/dev/kustomization.yaml
           
           if ! git diff --staged --quiet; then
             git commit -m "chore(backend): update image to ${{ needs.build-and-scan.outputs.image-tag }}"
