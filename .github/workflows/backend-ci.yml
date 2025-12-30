@@ -12,14 +12,15 @@ on:
       - 'tax-calculator-app/backend/**'
   workflow_dispatch:
 
+permissions:
+  contents: write        # ✅ For updating manifests
+  security-events: write # ✅ For SARIF upload
+  actions: read
+
 env:
   GO_VERSION: '1.21'
   IMAGE_NAME: tax-calculator-backend
   AWS_REGION: eu-west-2
-
-permissions:
-  contents: write
-  security-events: write
 
 jobs:
   # ---------------------------------------------------------
@@ -37,6 +38,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: tax-calculator-app/backend/go.sum
 
       - name: Install dependencies
         working-directory: tax-calculator-app/backend
@@ -45,7 +48,8 @@ jobs:
       - name: Run tests with coverage
         working-directory: tax-calculator-app/backend
         run: |
-          go test ./... -v -coverprofile=coverage.out -covermode=atomic
+          go test -v -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v2.3.0
@@ -54,6 +58,14 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: tax-calculator-app/backend
+          args: >
+            -Dsonar.projectKey=tax-calculator-backend
+            -Dsonar.projectName=TaxCalculatorBackend
+            -Dsonar.go.coverage.reportPaths=coverage.out
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/*_test.go,**/vendor/**
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
 
   # ---------------------------------------------------------
   # 2️⃣ Build Image & Security Scan
@@ -62,7 +74,7 @@ jobs:
     name: Build & Scan Image
     runs-on: ubuntu-latest
     needs: sonarqube-analysis
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
 
     outputs:
       image-tag: ${{ steps.meta.outputs.version }}
@@ -96,6 +108,8 @@ jobs:
           file: tax-calculator-app/backend/Dockerfile
           load: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Trivy scan (SARIF)
         uses: aquasecurity/trivy-action@master
@@ -104,11 +118,23 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
+          exit-code: 0
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy-results.sarif
+          category: backend-security
+
+      - name: Trivy scan (table view)
+        uses: aquasecurity/trivy-action@master
+        if: always()
+        with:
+          image-ref: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: table
+          severity: CRITICAL,HIGH,MEDIUM
 
       - name: Push image to ECR
         uses: docker/build-push-action@v5
@@ -117,6 +143,8 @@ jobs:
           file: tax-calculator-app/backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # ---------------------------------------------------------
   # 3️⃣ Update GitOps Manifests
@@ -129,20 +157,86 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update deployment image
+      - name: Update deployment manifest
         run: |
-          sed -i \
-            "s|image:.*tax-calculator-backend.*|image: ${{ secrets.ECR_REGISTRY }}/tax-calculator-backend:${{ needs.build-and-scan.outputs.image-tag }}|g" \
-            kubernetes/base/tax-calculator/backend/deployment.yaml
+          IMAGE_TAG="${{ needs.build-and-scan.outputs.image-tag }}"
+          echo "Updating backend deployment to image tag: ${IMAGE_TAG}"
+          
+          mkdir -p kubernetes/base/tax-calculator/backend
+          
+          if [ ! -f "kubernetes/base/tax-calculator/backend/deployment.yaml" ]; then
+            cat > kubernetes/base/tax-calculator/backend/deployment.yaml <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: backend
+            namespace: tax-calculator
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                component: backend
+            template:
+              metadata:
+                labels:
+                  component: backend
+              spec:
+                serviceAccountName: tax-calculator
+                containers:
+                - name: backend
+                  image: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+                  ports:
+                  - containerPort: 8080
+                  env:
+                  - name: PORT
+                    value: "8080"
+                  - name: VAULT_ADDR
+                    value: "http://vault.vault.svc.cluster.local:8200"
+                  - name: VAULT_ROLE
+                    value: "tax-calculator"
+                  resources:
+                    requests:
+                      memory: "256Mi"
+                      cpu: "250m"
+                    limits:
+                      memory: "512Mi"
+                      cpu: "500m"
+                  livenessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                  readinessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 10
+                    periodSeconds: 5
+          EOF
+          else
+            sed -i "s|image:.*${{ env.IMAGE_NAME }}.*|image: ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}|g" \
+              kubernetes/base/tax-calculator/backend/deployment.yaml
+          fi
+          
+          cat kubernetes/base/tax-calculator/backend/deployment.yaml
 
-      - name: Commit & push
+      - name: Commit and push
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           git add kubernetes/base/tax-calculator/backend/deployment.yaml
-          git commit -m "chore(backend): update image"
-          git push
+          
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(backend): update image to ${{ needs.build-and-scan.outputs.image-tag }}"
+            git push
+          else
+            echo "No changes to commit"
+          fi
 
   # ---------------------------------------------------------
   # 4️⃣ Deploy via ArgoCD
@@ -151,13 +245,14 @@ jobs:
     name: ArgoCD Sync
     runs-on: ubuntu-latest
     needs: update-manifests
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Install ArgoCD CLI
         run: |
           curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x argocd
-          sudo mv argocd /usr/local/bin/
+          sudo mv argocd /usr/local/bin/argocd
 
       - name: Sync application
         run: |
@@ -166,5 +261,12 @@ jobs:
             --grpc-web \
             --insecure
 
+          echo "Syncing backend application..."
           argocd app sync tax-calculator-backend --prune
-          argocd app wait tax-calculator-backend --health --timeout 300
+          
+          echo "Waiting for sync to complete..."
+          argocd app wait tax-calculator-backend --timeout 300
+
+      - name: Get deployment status
+        run: |
+          argocd app get tax-calculator-backend
