@@ -32,7 +32,7 @@ terraform.rc
 *.dylib
 *.test
 *.out
-go.sum
+
 
 # === Node.js (Frontend) ===
 **/node_modules/
