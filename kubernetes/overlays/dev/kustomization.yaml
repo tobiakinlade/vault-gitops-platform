@@ -11,4 +11,5 @@ images:
   newName: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend
   newTag: sha-83ce6ce
 - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
-  newTag: placeholder
+  newName: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
+  newTag: sha-1bf29c7
