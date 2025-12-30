@@ -24,11 +24,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0
+      
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+      
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -36,16 +38,19 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      
       - name: Install dependencies
         working-directory: ./tax-calculator-app/backend
         run: go mod download
+      
       - name: Run tests with coverage
         working-directory: ./tax-calculator-app/backend
         run: |
           go test -v -coverprofile=coverage.out -covermode=atomic ./...
           go tool cover -func=coverage.out
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+      
+      - name: SonarQube Scan with Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v2.3.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -53,15 +58,12 @@ jobs:
           projectBaseDir: ./tax-calculator-app/backend
           args: >
             -Dsonar.projectKey=tax-calculator-backend
+            -Dsonar.projectName=Tax Calculator Backend
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.sources=.
             -Dsonar.exclusions=**/*_test.go,**/vendor/**
-      - name: Quality Gate Check
-        uses: SonarSource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
   # Job 2: Build Docker Image and Security Scan
   build-and-scan:
     name: Build Image & Security Scan
