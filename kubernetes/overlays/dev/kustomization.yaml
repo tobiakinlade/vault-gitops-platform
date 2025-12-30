@@ -12,4 +12,4 @@ images:
   newTag: sha-12ed591
 - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
   newName: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
-  newTag: sha-1bf29c7
+  newTag: sha-72f49c0
