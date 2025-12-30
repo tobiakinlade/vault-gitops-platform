@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: backend
-          image: ${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend:latest
+          image: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend:latest
           imagePullPolicy: Always
           ports:
             - name: http
