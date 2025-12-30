@@ -53,7 +53,7 @@ jobs:
           projectBaseDir: ./tax-calculator-app/frontend
           args: >
             -Dsonar.projectKey=tax-calculator-frontend
-            -Dsonar.projectName=Tax Calculator Frontend
+            -Dsonar.projectName=TaxCalculatorFrontend
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.sources=src
             -Dsonar.exclusions=**/*.test.js,**/node_modules/**

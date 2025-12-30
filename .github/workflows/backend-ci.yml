@@ -58,7 +58,7 @@ jobs:
           projectBaseDir: ./tax-calculator-app/backend
           args: >
             -Dsonar.projectKey=tax-calculator-backend
-            -Dsonar.projectName=Tax Calculator Backend
+            -Dsonar.projectName=TaxCalculatorBackend
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.sources=.
             -Dsonar.exclusions=**/*_test.go,**/vendor/**
