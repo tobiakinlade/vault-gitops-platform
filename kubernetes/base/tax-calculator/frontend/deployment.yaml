@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend:latest
+        image: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend:placeholder
         ports:
         - containerPort: 80
         resources:
