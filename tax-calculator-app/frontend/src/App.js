@@ -29,7 +29,7 @@ function App() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/v1/history`);
+      const response = await fetch(`${API_URL}/api/history`);
       const data = await response.json();
       setHistory(data || []);
     } catch (err) {
@@ -44,7 +44,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/calculate`, {
+      const response = await fetch(`${API_URL}/api/calculate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
