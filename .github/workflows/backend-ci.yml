@@ -238,35 +238,4 @@ jobs:
             echo "No changes to commit"
           fi
 
-  # ---------------------------------------------------------
-  # 4️⃣ Deploy via ArgoCD
-  # ---------------------------------------------------------
-  argocd-sync:
-    name: ArgoCD Sync
-    runs-on: ubuntu-latest
-    needs: update-manifests
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Install ArgoCD CLI
-        run: |
-          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x argocd
-          sudo mv argocd /usr/local/bin/argocd
-
-      - name: Sync application
-        run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} \
-            --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }} \
-            --grpc-web \
-            --insecure
-
-          echo "Syncing backend application..."
-          argocd app sync tax-calculator-backend --prune
-          
-          echo "Waiting for sync to complete..."
-          argocd app wait tax-calculator-backend --timeout 300
-
-      - name: Get deployment status
-        run: |
-          argocd app get tax-calculator-backend
+  
