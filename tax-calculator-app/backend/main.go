@@ -102,7 +102,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/health", s.healthCheck).Methods("GET", "OPTIONS")
 
 	// API routes
-	api := s.router.PathPrefix("/api/v1").Subrouter()
+	api := s.router.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/calculate", s.calculateTax).Methods("POST", "OPTIONS")
 	api.HandleFunc("/history", s.getTaxHistory).Methods("GET", "OPTIONS")
 	api.HandleFunc("/history/{id}", s.getTaxCalculation).Methods("GET", "OPTIONS")
