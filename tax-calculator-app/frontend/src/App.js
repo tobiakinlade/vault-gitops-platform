@@ -84,7 +84,7 @@ function App() {
   return (
     <div className='App'>
       <header className='App-header'>
-        <h1>UK Tax Calculator:V2</h1>
+        <h1>UK Tax Calculator</h1>
         <p className='subtitle'>
           HMRC-Style Tax Calculation Demo with HashiCorp Vault
         </p>
@@ -276,7 +276,7 @@ function App() {
           </div>
         </div>
         <p className='disclaimer'>
-          Demo application for calculating Tax rates: UK 2024/2025 | CI/CD Automated Deployment
+          Demo application for calculating Tax rates: UK 2024/2025
         </p>
       </footer>
     </div>
