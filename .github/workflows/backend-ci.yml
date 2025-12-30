@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'tax-calculator-app/backend/**'
+  workflow_dispatch:
 env:
   GO_VERSION: '1.21'
   IMAGE_NAME: tax-calculator-backend
