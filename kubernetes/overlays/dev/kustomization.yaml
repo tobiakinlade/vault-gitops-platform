@@ -4,10 +4,11 @@ kind: Kustomization
 namespace: tax-calculator
 
 resources:
-  - ../../base/tax-calculator
+- ../../base/tax-calculator
 
 images:
-  - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend
-    newTag: placeholder
-  - name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
-    newTag: placeholder
+- name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend
+  newName: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-backend
+  newTag: sha-83ce6ce
+- name: 180048382895.dkr.ecr.eu-west-2.amazonaws.com/tax-calculator-frontend
+  newTag: placeholder
