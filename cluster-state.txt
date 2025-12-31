@@ -1,0 +1,187 @@
+NAMESPACE        NAME                                                            READY   STATUS             RESTARTS       AGE
+argocd           pod/argocd-application-controller-0                             1/1     Running            0              78m
+argocd           pod/argocd-applicationset-controller-7c49497b9f-2g5zt           1/1     Running            0              78m
+argocd           pod/argocd-dex-server-865d88dcd9-7vgxs                          1/1     Running            0              72m
+argocd           pod/argocd-notifications-controller-5f54bf4546-9v6wc            1/1     Running            0              75m
+argocd           pod/argocd-redis-c658bcc47-ks9ph                                1/1     Running            0              72m
+argocd           pod/argocd-repo-server-6b968db4cd-7rwcw                         1/1     Running            0              78m
+argocd           pod/argocd-server-86b5897bf7-r4vwk                              1/1     Running            0              75m
+elastic-system   pod/elasticsearch-master-0                                      1/1     Running            0              79m
+elastic-system   pod/pre-install-kibana-kibana-29nz6                             0/1     Error              0              59s
+elastic-system   pod/pre-install-kibana-kibana-7g9z7                             0/1     Error              0              10m
+elastic-system   pod/pre-install-kibana-kibana-f4czr                             0/1     Error              0              50m
+elastic-system   pod/pre-install-kibana-kibana-gr6vn                             0/1     Error              0              51m
+elastic-system   pod/pre-install-kibana-kibana-j7xpp                             0/1     Error              0              50m
+elastic-system   pod/pre-install-kibana-kibana-k7nfh                             0/1     Error              0              46m
+elastic-system   pod/pre-install-kibana-kibana-ljdlq                             0/1     Error              0              48m
+elastic-system   pod/pre-install-kibana-kibana-sqxx8                             0/1     Error              0              40m
+elastic-system   pod/pre-install-kibana-kibana-trpdh                             0/1     Error              0              20m
+elastic-system   pod/pre-install-kibana-kibana-vggwv                             0/1     Error              0              52m
+elastic-system   pod/pre-install-kibana-kibana-wwl2c                             0/1     Error              0              30m
+kube-system      pod/aws-node-7kc2j                                              2/2     Running            0              80m
+kube-system      pod/aws-node-jk228                                              2/2     Running            0              80m
+kube-system      pod/aws-node-rbnll                                              2/2     Running            0              80m
+kube-system      pod/coredns-c7bbdfbb8-v8mrw                                     1/1     Running            0              78m
+kube-system      pod/coredns-c7bbdfbb8-xk5dg                                     1/1     Running            0              75m
+kube-system      pod/ebs-csi-controller-67f9ccd849-mqqhc                         6/6     Running            0              78m
+kube-system      pod/ebs-csi-controller-67f9ccd849-n5n7z                         6/6     Running            0              72m
+kube-system      pod/ebs-csi-node-bjrfm                                          3/3     Running            0              80m
+kube-system      pod/ebs-csi-node-pbwv8                                          3/3     Running            0              80m
+kube-system      pod/ebs-csi-node-t9xvt                                          3/3     Running            0              80m
+kube-system      pod/kube-proxy-9pwqz                                            1/1     Running            0              80m
+kube-system      pod/kube-proxy-mt48r                                            1/1     Running            0              80m
+kube-system      pod/kube-proxy-nmklp                                            1/1     Running            0              80m
+kube-system      pod/metrics-server-7fbfbcc44c-ddrjr                             1/1     Running            0              65m
+logging          pod/loki-0                                                      2/2     Running            0              59m
+logging          pod/loki-gateway-86b4b8b58-6wxsr                                1/1     Running            0              75m
+logging          pod/promtail-22vdt                                              1/1     Running            0              79m
+logging          pod/promtail-7gqzn                                              1/1     Running            0              80m
+logging          pod/promtail-bpkb6                                              1/1     Running            0              80m
+monitoring       pod/alertmanager-kube-prometheus-stack-alertmanager-0           2/2     Running            0              75m
+monitoring       pod/kube-prometheus-stack-grafana-69d9d547bf-mxdkk              3/3     Running            0              78m
+monitoring       pod/kube-prometheus-stack-kube-state-metrics-66488d8b7b-qs7hm   1/1     Running            0              75m
+monitoring       pod/kube-prometheus-stack-operator-84d4f9bb6-lnt6m              1/1     Running            0              75m
+monitoring       pod/kube-prometheus-stack-prometheus-node-exporter-pflg7        1/1     Running            0              80m
+monitoring       pod/kube-prometheus-stack-prometheus-node-exporter-slp45        1/1     Running            0              80m
+monitoring       pod/kube-prometheus-stack-prometheus-node-exporter-xcm4d        1/1     Running            0              80m
+monitoring       pod/prometheus-kube-prometheus-stack-prometheus-0               2/2     Running            0              82m
+sonarqube        pod/sonarqube-sonarqube-0                                       0/1     CrashLoopBackOff   15 (76s ago)   75m
+tax-calculator   pod/backend-7874bccb87-fxbld                                    1/1     Running            0              78m
+tax-calculator   pod/frontend-548bffc8b6-9x5bl                                   1/1     Running            0              75m
+tax-calculator   pod/frontend-548bffc8b6-crb9t                                   1/1     Running            0              78m
+tax-calculator   pod/postgres-79d588cb84-g8fjg                                   1/1     Running            0              75m
+vault            pod/vault-0                                                     1/1     Running            0              78m
+vault            pod/vault-1                                                     0/1     Pending            0              72m
+vault            pod/vault-agent-injector-6d9f6684-9crhd                         1/1     Running            0              72m
+vault            pod/vault-agent-injector-6d9f6684-nnkf4                         1/1     Running            0              75m
+
+NAMESPACE        NAME                                                     TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                        AGE
+argocd           service/argocd-applicationset-controller                 ClusterIP      172.20.115.224   <none>                                                                    7000/TCP,8080/TCP              44h
+argocd           service/argocd-dex-server                                ClusterIP      172.20.73.100    <none>                                                                    5556/TCP,5557/TCP,5558/TCP     44h
+argocd           service/argocd-metrics                                   ClusterIP      172.20.69.247    <none>                                                                    8082/TCP                       44h
+argocd           service/argocd-notifications-controller-metrics          ClusterIP      172.20.54.17     <none>                                                                    9001/TCP                       44h
+argocd           service/argocd-redis                                     ClusterIP      172.20.35.113    <none>                                                                    6379/TCP                       44h
+argocd           service/argocd-repo-server                               ClusterIP      172.20.130.14    <none>                                                                    8081/TCP,8084/TCP              44h
+argocd           service/argocd-server                                    LoadBalancer   172.20.244.219   af5228c10bbaf4dfab6e5d922ccbc498-367814680.eu-west-2.elb.amazonaws.com    80:31194/TCP,443:32126/TCP     44h
+argocd           service/argocd-server-metrics                            ClusterIP      172.20.192.50    <none>                                                                    8083/TCP                       44h
+default          service/backend                                          ClusterIP      172.20.43.75     <none>                                                                    8080/TCP                       27h
+default          service/kubelet                                          ClusterIP      None             <none>                                                                    10250/TCP,10255/TCP,4194/TCP   10h
+default          service/kubernetes                                       ClusterIP      172.20.0.1       <none>                                                                    443/TCP                        46h
+elastic-system   service/elasticsearch-master                             ClusterIP      172.20.186.52    <none>                                                                    9200/TCP,9300/TCP              9h
+elastic-system   service/elasticsearch-master-headless                    ClusterIP      None             <none>                                                                    9200/TCP,9300/TCP              9h
+kube-system      service/eks-extension-metrics-api                        ClusterIP      172.20.132.206   <none>                                                                    443/TCP                        46h
+kube-system      service/kube-dns                                         ClusterIP      172.20.0.10      <none>                                                                    53/UDP,53/TCP,9153/TCP         46h
+kube-system      service/kube-prometheus-stack-coredns                    ClusterIP      None             <none>                                                                    9153/TCP                       14h
+kube-system      service/kube-prometheus-stack-kube-controller-manager    ClusterIP      None             <none>                                                                    10257/TCP                      14h
+kube-system      service/kube-prometheus-stack-kube-etcd                  ClusterIP      None             <none>                                                                    2381/TCP                       14h
+kube-system      service/kube-prometheus-stack-kube-proxy                 ClusterIP      None             <none>                                                                    10249/TCP                      14h
+kube-system      service/kube-prometheus-stack-kube-scheduler             ClusterIP      None             <none>                                                                    10259/TCP                      14h
+kube-system      service/kube-prometheus-stack-kubelet                    ClusterIP      None             <none>                                                                    10250/TCP,10255/TCP,4194/TCP   14h
+kube-system      service/metrics-server                                   ClusterIP      172.20.126.116   <none>                                                                    443/TCP                        66m
+logging          service/loki                                             ClusterIP      172.20.254.247   <none>                                                                    3100/TCP,9095/TCP              10h
+logging          service/loki-canary                                      ClusterIP      172.20.203.140   <none>                                                                    3500/TCP                       10h
+logging          service/loki-chunks-cache                                ClusterIP      None             <none>                                                                    11211/TCP,9150/TCP             10h
+logging          service/loki-gateway                                     ClusterIP      172.20.45.221    <none>                                                                    80/TCP                         10h
+logging          service/loki-headless                                    ClusterIP      None             <none>                                                                    3100/TCP                       10h
+logging          service/loki-memberlist                                  ClusterIP      None             <none>                                                                    7946/TCP                       10h
+logging          service/loki-results-cache                               ClusterIP      None             <none>                                                                    11211/TCP,9150/TCP             10h
+logging          service/promtail-metrics                                 ClusterIP      None             <none>                                                                    3101/TCP                       12h
+monitoring       service/alertmanager-operated                            ClusterIP      None             <none>                                                                    9093/TCP,9094/TCP,9094/UDP     14h
+monitoring       service/kube-prometheus-stack-alertmanager               ClusterIP      172.20.40.105    <none>                                                                    9093/TCP,8080/TCP              14h
+monitoring       service/kube-prometheus-stack-grafana                    LoadBalancer   172.20.119.173   a41e63e63719c4a31a4d4cafc9ae5abe-1396078867.eu-west-2.elb.amazonaws.com   80:30476/TCP                   14h
+monitoring       service/kube-prometheus-stack-kube-state-metrics         ClusterIP      172.20.79.83     <none>                                                                    8080/TCP                       14h
+monitoring       service/kube-prometheus-stack-operator                   ClusterIP      172.20.109.211   <none>                                                                    443/TCP                        14h
+monitoring       service/kube-prometheus-stack-prometheus                 ClusterIP      172.20.100.249   <none>                                                                    9090/TCP,8080/TCP              14h
+monitoring       service/kube-prometheus-stack-prometheus-node-exporter   ClusterIP      172.20.140.194   <none>                                                                    9100/TCP                       14h
+monitoring       service/prometheus-operated                              ClusterIP      None             <none>                                                                    9090/TCP                       14h
+sonarqube        service/postgres-sonarqube                               ClusterIP      None             <none>                                                                    5432/TCP                       42h
+sonarqube        service/sonarqube-sonarqube                              LoadBalancer   172.20.175.235   aeb673d27974e473293357c3fab1568f-1796834191.eu-west-2.elb.amazonaws.com   9000:31622/TCP                 42h
+tax-calculator   service/backend                                          LoadBalancer   172.20.164.176   a72d1b0635c4247f0add61de389aa883-484556783.eu-west-2.elb.amazonaws.com    8080:30160/TCP                 44h
+tax-calculator   service/frontend                                         LoadBalancer   172.20.30.252    acff81db8b1914666a3cad061d2f1efc-564813076.eu-west-2.elb.amazonaws.com    80:31981/TCP                   44h
+tax-calculator   service/postgres                                         ClusterIP      172.20.109.14    <none>                                                                    5432/TCP                       45h
+vault            service/vault                                            ClusterIP      172.20.163.108   <none>                                                                    8200/TCP,8201/TCP              46h
+vault            service/vault-active                                     ClusterIP      172.20.50.168    <none>                                                                    8200/TCP,8201/TCP              46h
+vault            service/vault-agent-injector-svc                         ClusterIP      172.20.106.222   <none>                                                                    443/TCP                        46h
+vault            service/vault-internal                                   ClusterIP      None             <none>                                                                    8200/TCP,8201/TCP              46h
+vault            service/vault-standby                                    ClusterIP      172.20.207.52    <none>                                                                    8200/TCP,8201/TCP              46h
+
+NAMESPACE     NAME                                                            DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR              AGE
+kube-system   daemonset.apps/aws-node                                         3         3         3       3            3           <none>                     46h
+kube-system   daemonset.apps/ebs-csi-node                                     3         3         3       3            3           kubernetes.io/os=linux     46h
+kube-system   daemonset.apps/ebs-csi-node-windows                             0         0         0       0            0           kubernetes.io/os=windows   46h
+kube-system   daemonset.apps/kube-proxy                                       3         3         3       3            3           <none>                     46h
+logging       daemonset.apps/promtail                                         3         3         3       3            3           <none>                     12h
+monitoring    daemonset.apps/kube-prometheus-stack-prometheus-node-exporter   3         3         3       3            3           kubernetes.io/os=linux     14h
+
+NAMESPACE        NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
+argocd           deployment.apps/argocd-applicationset-controller           1/1     1            1           44h
+argocd           deployment.apps/argocd-dex-server                          1/1     1            1           44h
+argocd           deployment.apps/argocd-notifications-controller            1/1     1            1           44h
+argocd           deployment.apps/argocd-redis                               1/1     1            1           44h
+argocd           deployment.apps/argocd-repo-server                         1/1     1            1           44h
+argocd           deployment.apps/argocd-server                              1/1     1            1           44h
+kube-system      deployment.apps/coredns                                    2/2     2            2           46h
+kube-system      deployment.apps/ebs-csi-controller                         2/2     2            2           46h
+kube-system      deployment.apps/metrics-server                             1/1     1            1           66m
+logging          deployment.apps/loki-gateway                               1/1     1            1           10h
+monitoring       deployment.apps/kube-prometheus-stack-grafana              1/1     1            1           14h
+monitoring       deployment.apps/kube-prometheus-stack-kube-state-metrics   1/1     1            1           14h
+monitoring       deployment.apps/kube-prometheus-stack-operator             1/1     1            1           14h
+tax-calculator   deployment.apps/backend                                    1/1     1            1           45h
+tax-calculator   deployment.apps/frontend                                   2/2     2            2           27h
+tax-calculator   deployment.apps/postgres                                   1/1     1            1           45h
+vault            deployment.apps/vault-agent-injector                       2/2     2            2           46h
+
+NAMESPACE        NAME                                                                  DESIRED   CURRENT   READY   AGE
+argocd           replicaset.apps/argocd-applicationset-controller-7c49497b9f           1         1         1       44h
+argocd           replicaset.apps/argocd-dex-server-865d88dcd9                          1         1         1       44h
+argocd           replicaset.apps/argocd-notifications-controller-5f54bf4546            1         1         1       44h
+argocd           replicaset.apps/argocd-redis-c658bcc47                                1         1         1       44h
+argocd           replicaset.apps/argocd-repo-server-6b968db4cd                         1         1         1       44h
+argocd           replicaset.apps/argocd-server-86b5897bf7                              1         1         1       44h
+kube-system      replicaset.apps/coredns-c7bbdfbb8                                     2         2         2       46h
+kube-system      replicaset.apps/ebs-csi-controller-67f9ccd849                         2         2         2       46h
+kube-system      replicaset.apps/metrics-server-7bb66479db                             0         0         0       66m
+kube-system      replicaset.apps/metrics-server-7fbfbcc44c                             1         1         1       65m
+logging          replicaset.apps/loki-gateway-86b4b8b58                                1         1         1       10h
+monitoring       replicaset.apps/kube-prometheus-stack-grafana-654499468c              0         0         0       14h
+monitoring       replicaset.apps/kube-prometheus-stack-grafana-69d9d547bf              1         1         1       12h
+monitoring       replicaset.apps/kube-prometheus-stack-kube-state-metrics-5f454f8889   0         0         0       14h
+monitoring       replicaset.apps/kube-prometheus-stack-kube-state-metrics-66488d8b7b   1         1         1       12h
+monitoring       replicaset.apps/kube-prometheus-stack-operator-6d9958889f             0         0         0       14h
+monitoring       replicaset.apps/kube-prometheus-stack-operator-84d4f9bb6              1         1         1       12h
+tax-calculator   replicaset.apps/backend-597f748f6c                                    0         0         0       16h
+tax-calculator   replicaset.apps/backend-6ddf67c785                                    0         0         0       26h
+tax-calculator   replicaset.apps/backend-6fd585cfb7                                    0         0         0       21h
+tax-calculator   replicaset.apps/backend-74fc544fc5                                    0         0         0       22h
+tax-calculator   replicaset.apps/backend-7874bccb87                                    1         1         1       16h
+tax-calculator   replicaset.apps/backend-79b54fc777                                    0         0         0       45h
+tax-calculator   replicaset.apps/backend-7b9db47b6                                     0         0         0       18h
+tax-calculator   replicaset.apps/backend-7bc7777ff8                                    0         0         0       22h
+tax-calculator   replicaset.apps/frontend-548bffc8b6                                   2         2         2       15h
+tax-calculator   replicaset.apps/frontend-5559f86cd5                                   0         0         0       17h
+tax-calculator   replicaset.apps/frontend-555b9768f6                                   0         0         0       19h
+tax-calculator   replicaset.apps/frontend-6f576bbcf                                    0         0         0       17h
+tax-calculator   replicaset.apps/frontend-74699785d4                                   0         0         0       20h
+tax-calculator   replicaset.apps/frontend-7d86587bd                                    0         0         0       21h
+tax-calculator   replicaset.apps/frontend-7f99567f74                                   0         0         0       19h
+tax-calculator   replicaset.apps/frontend-bbf5c9b4b                                    0         0         0       27h
+tax-calculator   replicaset.apps/frontend-d6bf46fb5                                    0         0         0       18h
+tax-calculator   replicaset.apps/postgres-79d588cb84                                   1         1         1       45h
+vault            replicaset.apps/vault-agent-injector-6d9f6684                         2         2         2       46h
+
+NAMESPACE        NAME                                                               READY   AGE
+argocd           statefulset.apps/argocd-application-controller                     1/1     44h
+elastic-system   statefulset.apps/elasticsearch-master                              1/1     9h
+logging          statefulset.apps/loki                                              1/1     10h
+monitoring       statefulset.apps/alertmanager-kube-prometheus-stack-alertmanager   1/1     14h
+monitoring       statefulset.apps/prometheus-kube-prometheus-stack-prometheus       1/1     14h
+sonarqube        statefulset.apps/postgres-sonarqube                                0/0     42h
+sonarqube        statefulset.apps/sonarqube-sonarqube                               0/1     42h
+vault            statefulset.apps/vault                                             1/2     46h
+
+NAMESPACE   NAME                                              REFERENCE            TARGETS                                     MINPODS   MAXPODS   REPLICAS   AGE
+default     horizontalpodautoscaler.autoscaling/backend-hpa   Deployment/backend   cpu: <unknown>/70%, memory: <unknown>/80%   2         10        0          27h
+
+NAMESPACE        NAME                                  STATUS    COMPLETIONS   DURATION   AGE
+elastic-system   job.batch/pre-install-kibana-kibana   Running   0/1           52m        52m

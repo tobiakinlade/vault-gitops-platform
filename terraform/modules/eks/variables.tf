@@ -63,25 +63,25 @@ variable "node_instance_types" {
 variable "node_disk_size" {
   description = "Disk size in GB for worker nodes"
   type        = number
-  default     = 25
+  default     = 30
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes"
   type        = number
-  default     = 3
+  default     = 5
 }
 
 variable "node_min_size" {
   description = "Minimum number of worker nodes"
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 4
+  default     = 6
 }
 
 variable "enable_cluster_autoscaler" {

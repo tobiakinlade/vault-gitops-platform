@@ -1,0 +1,94 @@
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    retentionSize: "50GB"
+    
+    # Persistent storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 50Gi
+    
+    # Resource limits
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    
+    # Scrape all ServiceMonitors/PodMonitors
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    
+    # Additional scrape configs
+    additionalScrapeConfigs:
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+
+# Grafana configuration
+grafana:
+  enabled: true
+  adminPassword: "admin123"
+  
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+  
+  service:
+    type: LoadBalancer
+    port: 80
+  
+  # Pre-install dashboards
+  defaultDashboardsEnabled: true
+  
+  # Dashboard sidecar
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      label: grafana_datasource
+
+# AlertManager configuration
+alertmanager:
+  enabled: true
+  
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 10Gi
+    
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Additional components
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
